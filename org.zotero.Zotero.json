@@ -22,6 +22,18 @@
   "modules": [
     "shared-modules/dbus-glib/dbus-glib.json",
     {
+      "name": "startup-notification",
+      "buildsystem": "autotools",
+      "config-opts": ["--build=aarch64-unknown-linux-gnu"],
+      "sources": [
+	{
+	  "type": "archive",
+	  "url": "http://www.freedesktop.org/software/startup-notification/releases/startup-notification-0.12.tar.gz",
+	  "sha512": "ea1246acdb50dafd9ced9914ec3c8f0d499c0ca3cfd447b43a444c768a6e9ea7135e5c42d9ca0089354698ac235bd86d42f12c70a3a17c9c79f998c07461f7ab"
+	}
+      ]
+    },
+    {
       "name": "zotero",
       "buildsystem": "simple",
       "sources": [
@@ -30,13 +42,15 @@
           "url": "https://download.zotero.org/client/release/6.0.30/Zotero-6.0.30_linux-x86_64.tar.bz2",
           "sha512": "3ad9757a038b433221c26d3a27b4a5f3ece7e481c021ca936187ea491426b3e7e4a57b17b5ea712d3e453c244e62fa1eecc6de70ac9e1d54847637642f695ddf",
           "only-arches": [
-            "x86_64"
+            "x86_64",
+	    "aarch64"
           ],
           "x-checker-data": {
             "type": "rotating-url",
             "url": "https://www.zotero.org/download/client/dl?channel=release&platform=linux-x86_64",
             "pattern": "https://download.zotero.org/client/release/([0-9.]+)/Zotero-([0-9.]+)_linux-x86_64.tar.bz2"
-          }
+          },
+	  "dest": "zotero"
         },
         {
           "type": "archive",
@@ -49,21 +63,34 @@
             "type": "rotating-url",
             "url": "https://www.zotero.org/download/client/dl?channel=release&platform=linux-i686",
             "pattern": "https://download.zotero.org/client/release/([0-9.]+)/Zotero-([0-9.]+)_linux-i686.tar.bz2"
-          }
+          },
+	  "dest": "zotero"
         },
         {
           "type": "file",
           "path": "org.zotero.Zotero.appdata.xml"
-        }
+        },
+	{
+	  "type": "file",
+	  "url": "http://launchpadlibrarian.net/373617392/firefox_60.0.2+build1-0ubuntu0.18.04.1_arm64.deb",
+	  "sha512": "e424262dccf7855d8103eb70d82df5cd9c10a729fd004511fc3812bfe3f47c70b956934d6cabbf7eebde61aa744a8391ffc308d335248af7fa8968b547669d2d"
+	}
       ],
       "build-commands": [
+	"ar x firefox_60.0.2+build1-0ubuntu0.18.04.1_arm64.deb",
+	"tar xf data.tar.xz ./usr/lib/firefox --strip-components=3 -C .",
         "mkdir -p /app/{bin,share}",
-        "cp -R . /app/share/zotero",
-        "install -D chrome/icons/default/default16.png /app/share/icons/hicolor/16x16/apps/zotero.png",
-        "install -D chrome/icons/default/default32.png /app/share/icons/hicolor/32x32/apps/zotero.png",
-        "install -D chrome/icons/default/default48.png /app/share/icons/hicolor/48x48/apps/zotero.png",
-        "install -D chrome/icons/default/default256.png /app/share/icons/hicolor/256x256/apps/zotero.png",
-        "desktop-file-install --dir=/app/share/applications --set-key=Exec --set-value='zotero -url %U' --set-key=Icon --set-value=org.zotero.Zotero --remove-key=SingleMainWindow --set-key=X-GNOME-SingleWindow --set-value=true --add-mime-type=x-scheme-handler/zotero zotero.desktop",
+        "cp -R zotero/ /app/share/zotero",
+	"install -Dm0644 firefox/*.{so,chk} /app/share/zotero/",
+	"install -Dm0644 firefox/gtk2/*.so /app/share/zotero/gtk2",
+	"install -Dm0755 firefox/plugin-container /app/share/zotero/plugin-container",
+	"install -Dm0755 firefox/firefox /app/share/zotero/zotero-bin",
+	"install -Dm0644 firefox/dependentlibs.list /app/share/zotero/dependentlibs.list",
+        "install -D zotero/chrome/icons/default/default16.png /app/share/icons/hicolor/16x16/apps/zotero.png",
+        "install -D zotero/chrome/icons/default/default32.png /app/share/icons/hicolor/32x32/apps/zotero.png",
+        "install -D zotero/chrome/icons/default/default48.png /app/share/icons/hicolor/48x48/apps/zotero.png",
+        "install -D zotero/chrome/icons/default/default256.png /app/share/icons/hicolor/256x256/apps/zotero.png",
+        "desktop-file-install --dir=/app/share/applications --set-key=Exec --set-value='zotero -url %U' --set-key=Icon --set-value=org.zotero.Zotero --remove-key=SingleMainWindow --set-key=X-GNOME-SingleWindow --set-value=true --add-mime-type=x-scheme-handler/zotero zotero/zotero.desktop",
         "install -D org.zotero.Zotero.appdata.xml /app/share/appdata/org.zotero.Zotero.appdata.xml",
         "ln -s /app/share/zotero/zotero /app/bin/zotero",
         "sed -i 's/pref(\"app.update.enabled\", true);/pref(\"app.update.enabled\", false);/' /app/share/zotero/defaults/preferences/prefs.js"

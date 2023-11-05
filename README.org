@@ -1,0 +1,10 @@
+This is the original zotero flatpak with some hacks applied in order to get it running on aarch64. Based on [[https://gitlab.com/Feakster/zotero-arm-bin][zotero-arm-bin]].
+
+How to build:
+~flatpak-builder --arch=aarch64 --repo=myrepo _flatpak org.zotero.Zotero.json~
+~flatpak build-bundle --arch=aarch64 myrepo zotero.flatpak org.zotero.Zotero~
+
+How to install:
+~flatpak install zotero.flatpak~
+
+In case you are interested in upstreaming aarch64 support, my observations are that support for aarch64 needs to be added to the zotero repo. However, the main challenge I saw is that zotero pulls binaries from firefox's repo, but firefox does not produce aarch64 binaries. Therefore the binaries would need to come from some other place.
